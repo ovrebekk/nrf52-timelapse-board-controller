@@ -63,7 +63,7 @@
 #include "nrf_sdh_ble.h"
 #include "nrf_ble_gatt.h"
 #include "app_timer.h"
-#include "ble_nus.h"
+#include "ble_tlcs.h"
 #include "app_uart.h"
 #include "app_util_platform.h"
 #include "bsp_btn_ble.h"
@@ -85,7 +85,7 @@
 #define APP_FEATURE_NOT_SUPPORTED       BLE_GATT_STATUS_ATTERR_APP_BEGIN + 2        /**< Reply when unsupported features are requested. */
 
 #define DEVICE_NAME                     "TImelapseController"                       /**< Name of device. Will be included in the advertising data. */
-#define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
+#define TLCS_SERVICE_UUID_TYPE          BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
 #define APP_BLE_OBSERVER_PRIO           3                                           /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 
@@ -106,7 +106,7 @@
 #define UART_RX_BUF_SIZE                256                                         /**< UART RX buffer size. */
 
 
-BLE_NUS_DEF(m_nus);                                                                 /**< BLE NUS service instance. */
+BLE_TLCS_DEF(m_tlcs);                                                               /**< BLE NUS service instance. */
 NRF_BLE_GATT_DEF(m_gatt);                                                           /**< GATT module instance. */
 BLE_ADVERTISING_DEF(m_advertising);                                                 /**< Advertising module instance. */
 
@@ -114,9 +114,10 @@ static uint16_t   m_conn_handle          = BLE_CONN_HANDLE_INVALID;             
 static uint16_t   m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3;            /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 static ble_uuid_t m_adv_uuids[]          =                                          /**< Universally unique service identifier. */
 {
-    {BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}
+    {BLE_UUID_TLCS_SERVICE, TLCS_SERVICE_UUID_TYPE}
 };
 
+APP_TIMER_DEF(m_stepper_set_timer_id);
 
 /**@brief Function for assert macro callback.
  *
@@ -175,31 +176,19 @@ static void gap_params_init(void)
  * @param[in] length   Length of the data.
  */
 /**@snippet [Handling the data received over BLE] */
-static void nus_data_handler(ble_nus_evt_t * p_evt)
+static void tlcs_data_handler(ble_tlcs_evt_t * p_evt)
 {
 
-    if (p_evt->type == BLE_NUS_EVT_RX_DATA)
+    if (p_evt->type == BLE_TLCS_EVT_RX_DATA)
     {
-        uint32_t err_code;
-
-        NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
-        NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
-
-        for (uint32_t i = 0; i < p_evt->params.rx_data.length; i++)
+        switch(p_evt->params.rx_data.p_data[0])
         {
-            do
-            {
-                err_code = app_uart_put(p_evt->params.rx_data.p_data[i]);
-                if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
-                {
-                    NRF_LOG_ERROR("Failed receiving NUS message. Error 0x%x. ", err_code);
-                    APP_ERROR_CHECK(err_code);
-                }
-            } while (err_code == NRF_ERROR_BUSY);
-        }
-        if (p_evt->params.rx_data.p_data[p_evt->params.rx_data.length-1] == '\r')
-        {
-            while (app_uart_put('\n') == NRF_ERROR_BUSY);
+            case 'a':
+                NRF_LOG_INFO("A");
+                break;
+            case 'b':
+                NRF_LOG_INFO("B");
+                break;
         }
     }
 
@@ -212,13 +201,13 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
 static void services_init(void)
 {
     uint32_t       err_code;
-    ble_nus_init_t nus_init;
+    ble_tlcs_init_t tlcs_init;
 
-    memset(&nus_init, 0, sizeof(nus_init));
+    memset(&tlcs_init, 0, sizeof(tlcs_init));
 
-    nus_init.data_handler = nus_data_handler;
+    tlcs_init.data_handler = tlcs_data_handler;
 
-    err_code = ble_nus_init(&m_nus, &nus_init);
+    err_code = ble_tlcs_init(&m_tlcs, &tlcs_init);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -315,7 +304,10 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
             APP_ERROR_CHECK(err_code);
             break;
         case BLE_ADV_EVT_IDLE:
-            sleep_mode_enter();
+            NRF_LOG_INFO("restarting advertising");
+            err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+            APP_ERROR_CHECK(err_code);
+            //sleep_mode_enter();
             break;
         default:
             break;
@@ -538,7 +530,7 @@ void bsp_event_handler(bsp_event_t event)
 /**@snippet [Handling the data received over UART] */
 void uart_event_handle(app_uart_evt_t * p_event)
 {
-    static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
+    static uint8_t data_array[BLE_TLCS_MAX_DATA_LEN];
     static uint8_t index = 0;
     uint32_t       err_code;
 
@@ -556,7 +548,7 @@ void uart_event_handle(app_uart_evt_t * p_event)
                 do
                 {
                     uint16_t length = (uint16_t)index;
-                    err_code = ble_nus_string_send(&m_nus, data_array, &length);
+                    err_code = ble_tlcs_string_send(&m_tlcs, data_array, &length);
                     if ( (err_code != NRF_ERROR_INVALID_STATE) && (err_code != NRF_ERROR_BUSY) )
                     {
                         APP_ERROR_CHECK(err_code);
@@ -647,7 +639,8 @@ static void buttons_leds_init(bool * p_erase_bonds)
 {
     bsp_event_t startup_event;
 
-    uint32_t err_code = bsp_init(BSP_INIT_LED | BSP_INIT_BUTTONS, bsp_event_handler);
+    uint32_t err_code = bsp_init(BSP_INIT_BUTTONS, bsp_event_handler);
+    //uint32_t err_code = bsp_init(BSP_INIT_LED | BSP_INIT_BUTTONS, bsp_event_handler);
     APP_ERROR_CHECK(err_code);
 
     err_code = bsp_btn_ble_init(NULL, &startup_event);
@@ -677,15 +670,25 @@ static void power_manage(void)
 }
 
 
+static void stepper_timer_timeout_handler(void *p)
+{
+    stepper_controller_stepper_set(0, 0);
+}
+
 static void steppers_init(void)
 {
+    // Stepper library init
     stpctrl_config_t config;
-    config.stepper_1.pin_ch_a  = 10;
-    config.stepper_1.pin_ch_an = 11;
-    config.stepper_1.pin_ch_b  = 12;
-    config.stepper_1.pin_ch_bn = 13;
+    config.stepper_1.pin_ch_a  = 17;
+    config.stepper_1.pin_ch_an = 18;
+    config.stepper_1.pin_ch_b  = 19;
+    config.stepper_1.pin_ch_bn = 20;
     config.stepper_1.pwm_ctrl_index = 0;
     stepper_controller_init(&config);
+
+    // Stepper timer init
+    app_timer_create(&m_stepper_set_timer_id, APP_TIMER_MODE_REPEATED, stepper_timer_timeout_handler);
+    app_timer_start(m_stepper_set_timer_id, APP_TIMER_TICKS(100), 0);
 }
 
 /**@brief Application main function.
@@ -712,7 +715,7 @@ int main(void)
 
     steppers_init();
 
-    printf("\r\Timelapse controller start!\r\n");
+    printf("\rTimelapse controller start!\r\n");
     NRF_LOG_INFO("Timelapse Controller Start!");
     err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
     APP_ERROR_CHECK(err_code);
