@@ -21,8 +21,15 @@ static uint32_t ret_code;
 static int m_run_direction;
 static uint32_t m_stepper_on_period = 50, m_stepper_cont_interval;
 
+// Method B
+static bool m_left_forward, m_right_forward;
+static int32_t m_left_interval_us, m_right_interval_us;
+
+
 APP_TIMER_DEF(m_app_timer_cont_step);
 APP_TIMER_DEF(m_app_timer_cont_step_release_delay);
+APP_TIMER_DEF(m_app_timer_step_left);
+APP_TIMER_DEF(m_app_timer_step_right);
 
 static void write_byte(uint8_t byte)
 {
@@ -87,6 +94,17 @@ static void cont_step_release_timeout(void *p)
     update_steppers(true);
 }
 
+static void step_left_timeout(void *p)
+{
+    step_b(m_left_forward);
+    update_steppers(false);
+}
+
+static void step_right_timeout(void *p)
+{
+    step_a(m_right_forward);
+    update_steppers(false);
+}
 
 void stepper_init(stepper_config_t *config)
 {
@@ -132,7 +150,9 @@ void stepper_init(stepper_config_t *config)
     // Configure timers
     app_timer_create(&m_app_timer_cont_step, APP_TIMER_MODE_REPEATED, cont_step_timeout);
     app_timer_create(&m_app_timer_cont_step_release_delay, APP_TIMER_MODE_SINGLE_SHOT, cont_step_release_timeout);
-
+    // Method B
+    app_timer_create(&m_app_timer_step_left, APP_TIMER_MODE_REPEATED, step_left_timeout);
+    app_timer_create(&m_app_timer_step_right, APP_TIMER_MODE_REPEATED, step_right_timeout);
 }
 
 void step_a(bool forward)
@@ -173,9 +193,10 @@ void step_cont_start(uint32_t interval_ms, bool forward)
 }
 
 char *dir_strings[] = {"NONE", "Forward", "Reverse", "Right turn", "Left turn", "Invalid!"};
+
 void step_process_command(const uint8_t *ptr, uint32_t length)
 {
-    if(length >= 6 && ptr[0] == 'A')
+    if(ptr[0] == 'A' && length >= 6)
     {
         // Check for a single command
         if(DIRECTION_VALID(ptr[1]))
@@ -197,9 +218,39 @@ void step_process_command(const uint8_t *ptr, uint32_t length)
         else
         {
             printf("Stop\r\n");
-            update_steppers(true);
             app_timer_stop(m_app_timer_cont_step);
+            app_timer_stop(m_app_timer_step_left);
+            app_timer_stop(m_app_timer_step_right);
+            update_steppers(true);
+
         }
+    }
+    else if(ptr[0] == 'B' && length >= 9 )
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            m_left_interval_us = (m_left_interval_us << 8) | ptr[1 + i];
+            m_right_interval_us = (m_right_interval_us << 8) | ptr[5 + i];
+        }
+        if(m_left_interval_us & 0x80000000)
+        {
+            m_left_interval_us *= -1;
+            m_left_forward = false;
+        }else m_left_forward = true;
+        if(m_right_interval_us & 0x80000000)
+        {
+            m_right_interval_us *= -1;
+            m_right_forward = false;
+        }else m_right_forward = true;
+
+        // Start or stop timers according to interval speeds
+        app_timer_stop(m_app_timer_step_left);
+        if(m_left_interval_us) app_timer_start(m_app_timer_step_left, APP_TIMER_TICKS((m_left_interval_us + 500) / 1000), 0);
+        app_timer_stop(m_app_timer_step_right);
+        if(m_right_interval_us) app_timer_start(m_app_timer_step_right, APP_TIMER_TICKS((m_right_interval_us + 500) / 1000), 0);
+        
+        // If both motors are stopped, release steppers
+        if(m_left_interval_us == 0 && m_right_interval_us == 0) update_steppers(false);
     }
 }
 

@@ -1,7 +1,9 @@
 <!DOCTYPE CrossStudio_Session_File>
 <session>
  <Bookmarks/>
- <Breakpoints groups="Breakpoints" active_group="Breakpoints"/>
+ <Breakpoints groups="Breakpoints" active_group="Breakpoints">
+  <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
+ </Breakpoints>
  <ExecutionProfileWindow/>
  <FrameBufferWindow>
   <FrameBufferWindow bufferHeight="-1" addressSpace="" addressText="" bufferWidth="-1"/>
@@ -24,6 +26,7 @@
   <ProjectSessionItem path="ble_app_uart_pca10040_s132;ble_app_uart_pca10040_s132;Application"/>
   <ProjectSessionItem path="ble_app_uart_pca10040_s132;ble_app_uart_pca10040_s132;cpplib"/>
   <ProjectSessionItem path="ble_app_uart_pca10040_s132;ble_app_uart_pca10040_s132;nRF_BLE_Services"/>
+  <ProjectSessionItem path="ble_app_uart_pca10040_s132;ble_app_uart_pca10040_s132;nRF_Libraries"/>
  </Project>
  <Register1>
   <RegisterWindow visibleNodes="CPU - Current Context/r0;CPU - Current Context/r1;CPU - Current Context/r2;CPU - Current Context/r3;CPU - Current Context/r4;CPU - Current Context/r5;CPU - Current Context/r6;CPU - Current Context/r7;CPU - Current Context/r8;CPU - Current Context/r9;CPU - Current Context/r10;CPU - Current Context/r11;CPU - Current Context/r12;CPU - Current Context/sp(r13);CPU - Current Context/lr(r14);CPU - Current Context/pc(r15);CPU - Current Context/apsr;CPU/r0;CPU/r1;CPU/r2;CPU/r3;CPU/r4;CPU/r5;CPU/r6;CPU/r7;CPU/r8;CPU/r9;CPU/r10;CPU/r11;CPU/r12;CPU/sp(r13);CPU/lr(r14);CPU/pc(r15);CPU/xpsr;CPU/msp;CPU/psp;CPU/cfbp;PWM0/TASKS_STOP;PWM0/TASKS_SEQSTART[0];PWM0/TASKS_SEQSTART[1];PWM0/TASKS_NEXTSTEP;PWM0/EVENTS_STOPPED;PWM0/EVENTS_SEQSTARTED[0];PWM0/EVENTS_SEQSTARTED[1];PWM0/EVENTS_SEQEND[0];PWM0/EVENTS_SEQEND[1];PWM0/EVENTS_PWMPERIODEND;PWM0/EVENTS_LOOPSDONE;PWM0/SHORTS;PWM0/INTEN;PWM0/INTENSET;PWM0/INTENCLR;PWM0/ENABLE;PWM0/MODE;PWM0/COUNTERTOP;PWM0/PRESCALER;PWM0/DECODER;PWM0/LOOP;PWM0/SEQ[0].PTR;PWM0/SEQ[0].CNT;PWM0/SEQ[0].REFRESH;PWM0/SEQ[0].ENDDELAY;PWM0/SEQ[1].PTR;PWM0/SEQ[1].CNT;PWM0/SEQ[1].REFRESH;PWM0/SEQ[1].ENDDELAY;PWM0/PSEL.OUT[0];PWM0/PSEL.OUT[1];PWM0/PSEL.OUT[2];PWM0/PSEL.OUT[3]" binaryNodes="" asciiNodes="" openNodes="CPU - Current Context;PWM0" name="ble_app_uart_pca10040_s132" decimalNodes="" octalNodes="" unsignedNodes=""/>
@@ -44,6 +47,9 @@
   <Watches active="1" update="Never">
    <Watchpoint numelements="0" expression="NRF_PWM0" evalMode="1" name="NRF_PWM0" radix="16" linenumber="18" filename="../../../common/stepper_controller.c" list=""/>
    <Watchpoint numelements="32" expression="stepper_motor_sequence" evalMode="0" name="stepper_motor_sequence" radix="-1" linenumber="5" filename="../../../common/stepper_controller.c" list=""/>
+   <Watchpoint numelements="0" expression="ptr" evalMode="0" name="ptr" radix="-1" linenumber="228" filename="../../../ardu_stepper_shield.c" list=""/>
+   <Watchpoint numelements="0" expression="m_left_interval_us" evalMode="0" name="m_left_interval_us" radix="10" linenumber="232" filename="../../../ardu_stepper_shield.c" list=""/>
+   <Watchpoint numelements="0" expression="m_right_interval_us" evalMode="0" name="m_right_interval_us" radix="10" linenumber="233" filename="../../../ardu_stepper_shield.c" list=""/>
   </Watches>
  </Watch1>
  <Watch2>
@@ -56,12 +62,12 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="11" y="696" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" debugPath="../../../main.c" selected="1" top="644" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="3" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../common/stepper_controller.c" debugPath="../../../common/stepper_controller.c" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="648" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.c" debugPath="../../../main.c" selected="1" top="608" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="51" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/experimental_log/nrf_log.h" debugPath="../../../../../../components/libraries/experimental_log/nrf_log.h" selected="0" top="24" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="60" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/sdk_common.h" debugPath="../../../../../../components/libraries/util/sdk_common.h" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="18" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ardu_stepper_shield.h" debugPath="../../../ardu_stepper_shield.h" selected="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="43" y="2" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ardu_stepper_shield.c" debugPath="../../../ardu_stepper_shield.c" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="50" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ardu_stepper_shield.h" debugPath="../../../ardu_stepper_shield.h" selected="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="97" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../ardu_stepper_shield.c" debugPath="../../../ardu_stepper_shield.c" selected="0" top="78" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="96" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_error_weak.c" debugPath="../../../../../../components/libraries/util/app_error_weak.c" selected="0" top="57" codecName=""/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_uart_pca10040_s132" fileDialogDefaultFilter="" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic Semiconductor/nRF5_SDK_14.2.0/examples/_too/timelapse_controller" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_app_uart_pca10040_s132" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="C:/Nordic Semiconductor/nRF5_SDK_14.2.0/examples/_too/timelapse_controller" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

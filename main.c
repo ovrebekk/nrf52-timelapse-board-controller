@@ -188,6 +188,7 @@ static void tlcs_data_handler(ble_tlcs_evt_t * p_evt)
         switch(p_evt->params.rx_data.p_data[0])
         {
             case 'A':
+            case 'B':
                 step_process_command(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
                 break;
         }
