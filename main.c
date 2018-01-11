@@ -69,7 +69,7 @@
 #include "bsp_btn_ble.h"
 #include "stepper_controller.h"
 #include "ardu_stepper_shield.h"
-
+ 
 #if defined (UART_PRESENT)
 #include "nrf_uart.h"
 #endif
